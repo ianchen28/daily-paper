@@ -108,6 +108,9 @@ class LLMAnalyzer:
 - 重点关注与用户关注领域（{Config.KEYWORDS}）的相关性"""
 
         try:
+            print(f"    🔄 调用 LLM API（模型: {Config.MODEL_NAME}）...")
+            # 注意：OpenAI SDK 的 timeout 需要在客户端初始化时设置
+            # 这里使用默认超时，如果超时会抛出异常
             response = self.client.chat.completions.create(
                 model=Config.MODEL_NAME,
                 messages=[
@@ -122,6 +125,7 @@ class LLMAnalyzer:
                 ],
                 temperature=0.3,
             )
+            print(f"    ✅ LLM API 调用成功")
 
             # 处理响应：支持推理模式（deepseek-reasoner）和普通模式
             message = response.choices[0].message

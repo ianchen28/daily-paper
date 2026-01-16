@@ -25,6 +25,7 @@ jobs:
         run: uv sync
 
       - name: Run daily paper
+        timeout-minutes: 60  # 设置超时时间为 60 分钟
         env:
           # Secrets（敏感信息）
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
@@ -42,4 +43,11 @@ jobs:
           EMAIL_RECEIVER: ${{ vars.EMAIL_RECEIVER }}
           KEYWORDS: ${{ vars.KEYWORDS }}
           MAX_PAPERS: ${{ vars.MAX_PAPERS }}
-        run: uv run python main.py
+        run: |
+          echo "🚀 开始运行 Daily Paper..."
+          echo "📊 配置信息:"
+          echo "  MODEL_NAME: ${{ vars.MODEL_NAME }}"
+          echo "  MAX_PAPERS: ${{ vars.MAX_PAPERS }}"
+          echo "  KEYWORDS: ${{ vars.KEYWORDS }}"
+          echo ""
+          uv run python main.py

@@ -1,4 +1,5 @@
 """主程序入口"""
+from datetime import datetime
 from .config import Config
 from .paper_fetcher import get_papers
 from .llm_analyzer import LLMAnalyzer
@@ -39,8 +40,10 @@ def main() -> None:
 
     for i, paper in enumerate(papers, 1):
         print(f"\n[{i}/{len(papers)}] 正在分析: {paper.title}...")
+        print(f"    开始时间: {datetime.now().strftime('%H:%M:%S')}")
         try:
             summary = analyzer.summarize(paper)
+            print(f"    结束时间: {datetime.now().strftime('%H:%M:%S')}")
             print(f"  ✅ 分析完成，返回内容长度: {len(summary) if summary else 0} 字符")
             if summary:
                 print(f"  内容预览: {summary[:100]}...")
@@ -48,9 +51,12 @@ def main() -> None:
             else:
                 print(f"  ⚠️ 返回内容为空")
         except Exception as e:
-            print(f"  ❌ 分析出错: {e}")
+            print(f"    结束时间: {datetime.now().strftime('%H:%M:%S')}")
+            print(f"  ❌ 分析出错: {type(e).__name__}: {e}")
             import traceback
             traceback.print_exc()
+            # 继续处理下一篇论文，不中断整个流程
+            continue
 
     print(f"\n📊 报告统计:")
     print(f"  总论文数: {len(papers)}")
