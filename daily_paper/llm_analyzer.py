@@ -10,12 +10,20 @@ class LLMAnalyzer:
     def __init__(self):
         """初始化 LLM 客户端"""
         # 如果指定了 base_url 则使用，否则使用默认（OpenAI 兼容）
+        # 设置超时时间为 120 秒，避免长时间等待
+        timeout = 120.0
         if Config.LLM_BASE_URL:
-            self.client = OpenAI(api_key=Config.LLM_API_KEY,
-                                 base_url=Config.LLM_BASE_URL)
+            self.client = OpenAI(
+                api_key=Config.LLM_API_KEY,
+                base_url=Config.LLM_BASE_URL,
+                timeout=timeout
+            )
         else:
             # 如果没有指定 base_url，使用默认的 OpenAI API
-            self.client = OpenAI(api_key=Config.LLM_API_KEY)
+            self.client = OpenAI(
+                api_key=Config.LLM_API_KEY,
+                timeout=timeout
+            )
 
     def summarize(self, paper: Any) -> str:
         """
