@@ -26,18 +26,20 @@ jobs:
 
       - name: Run daily paper
         env:
+          # Secrets（敏感信息）
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
-          MODEL_NAME: ${{ secrets.MODEL_NAME }}
-          INCLUDE_REASONING: ${{ secrets.INCLUDE_REASONING }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USE_SSL: ${{ secrets.SMTP_USE_SSL }}
-          SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
-          SMTP_TIMEOUT: ${{ secrets.SMTP_TIMEOUT }}
-          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
-          KEYWORDS: ${{ secrets.KEYWORDS }}
-          MAX_PAPERS: ${{ secrets.MAX_PAPERS }}
+          # Variables（环境变量）
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL }}
+          MODEL_NAME: ${{ vars.MODEL_NAME }}
+          INCLUDE_REASONING: ${{ vars.INCLUDE_REASONING }}
+          SMTP_SERVER: ${{ vars.SMTP_SERVER }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USE_SSL: ${{ vars.SMTP_USE_SSL }}
+          SMTP_USE_TLS: ${{ vars.SMTP_USE_TLS }}
+          SMTP_TIMEOUT: ${{ vars.SMTP_TIMEOUT }}
+          EMAIL_SENDER: ${{ vars.EMAIL_SENDER }}
+          EMAIL_RECEIVER: ${{ vars.EMAIL_RECEIVER }}
+          KEYWORDS: ${{ vars.KEYWORDS }}
+          MAX_PAPERS: ${{ vars.MAX_PAPERS }}
         run: uv run python main.py
