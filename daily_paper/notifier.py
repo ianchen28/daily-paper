@@ -18,9 +18,17 @@ class Notifier:
             html_content: HTML 格式的邮件内容
         """
         msg = MIMEMultipart()
-        msg['From'] = Config.EMAIL_SENDER
+        # 使用友好的发件人名称，提高邮件到达率
+        msg['From'] = f"Daily Paper Bot <{Config.EMAIL_SENDER}>"
         msg['To'] = Config.EMAIL_RECEIVER
-        msg['Subject'] = f"🚀 HuggingFace Daily ({datetime.now().strftime('%Y-%m-%d')})"
+        # 简化主题，避免特殊字符触发垃圾邮件过滤器
+        msg['Subject'] = f"HuggingFace Daily Papers - {datetime.now().strftime('%Y-%m-%d')}"
+        # 添加邮件头信息，避免被标记为垃圾邮件
+        msg['Message-ID'] = f"<daily-paper-{datetime.now().strftime('%Y%m%d%H%M%S')}@daily-paper>"
+        msg['Date'] = datetime.now().strftime('%a, %d %b %Y %H:%M:%S +0800')
+        msg['X-Mailer'] = 'Daily Paper Bot'
+        msg['MIME-Version'] = '1.0'
+        msg['Content-Type'] = 'text/html; charset=utf-8'
 
         body = f"""
         <html>
@@ -48,13 +56,89 @@ class Notifier:
         """
         msg.attach(MIMEText(body, 'html'))
 
+        import socket
+
         try:
-            server = smtplib.SMTP(Config.SMTP_SERVER, Config.SMTP_PORT)
-            server.starttls()
+            print(f"  📧 连接 SMTP 服务器: {Config.SMTP_SERVER}:{Config.SMTP_PORT}")
+            print(f"  ⏱️  超时设置: {Config.SMTP_TIMEOUT} 秒")
+            print(
+                f"  🔒 加密方式: {'SSL' if Config.SMTP_USE_SSL else 'TLS' if Config.SMTP_USE_TLS else '无'}"
+            )
+
+            # 根据配置选择 SSL 或 TLS
+            if Config.SMTP_USE_SSL:
+                # 使用 SSL 连接（适用于 465 端口，如 QQ 邮箱）
+                print("  🔐 使用 SSL 连接...")
+                server = smtplib.SMTP_SSL(Config.SMTP_SERVER,
+                                          Config.SMTP_PORT,
+                                          timeout=Config.SMTP_TIMEOUT)
+                print("  ✅ SSL 连接成功")
+            else:
+                # 使用普通连接，然后启动 TLS（适用于 587 端口，如 Gmail）
+                server = smtplib.SMTP(Config.SMTP_SERVER,
+                                      Config.SMTP_PORT,
+                                      timeout=Config.SMTP_TIMEOUT)
+                print("  ✅ SMTP 连接成功")
+
+                if Config.SMTP_USE_TLS:
+                    print("  🔐 启动 TLS 加密...")
+                    server.starttls()
+                    print("  ✅ TLS 启动成功")
+
+            print("  🔑 登录邮箱...")
             server.login(Config.EMAIL_SENDER, Config.EMAIL_PASSWORD)
-            server.sendmail(Config.EMAIL_SENDER, Config.EMAIL_RECEIVER, msg.as_string())
+            print("  ✅ 登录成功")
+
+            print("  📤 发送邮件...")
+            print(f"    发件人: {Config.EMAIL_SENDER}")
+            print(f"    收件人: {Config.EMAIL_RECEIVER}")
+            print(f"    主题: {msg['Subject']}")
+
+            # sendmail 返回失败的收件人字典，空字典表示全部成功
+            failed_recipients = server.sendmail(Config.EMAIL_SENDER,
+                                                Config.EMAIL_RECEIVER,
+                                                msg.as_string())
+
+            if failed_recipients:
+                print(f"  ⚠️ 部分收件人发送失败: {failed_recipients}")
+            else:
+                print("  ✅ 邮件已发送到服务器")
+                print("  💡 提示: 邮件可能需要几分钟才能到达收件箱")
+                print("  💡 如果未收到，请检查:")
+                print("     1. Gmail 的'所有邮件'标签（不只是收件箱）")
+                print("     2. 垃圾邮件文件夹")
+                print("     3. 邮件可能被延迟（等待 5-10 分钟）")
+                print("     4. Gmail 可能将 QQ 邮箱邮件标记为垃圾邮件")
+
             server.quit()
             print("✅ 邮件发送成功！")
+
+        except socket.timeout as e:
+            print(f"❌ 邮件发送失败: 连接超时（{Config.SMTP_TIMEOUT}秒）")
+            print(f"   可能的原因：")
+            print(f"   1. 网络连接问题")
+            print(f"   2. SMTP 服务器地址或端口错误")
+            print(f"   3. 防火墙或代理阻止连接")
+            print(f"   4. 可以尝试增加 SMTP_TIMEOUT 的值（当前: {Config.SMTP_TIMEOUT}秒）")
+            raise
+        except smtplib.SMTPAuthenticationError as e:
+            print(f"❌ 邮件发送失败: 认证失败")
+            print(f"   可能的原因：")
+            print(f"   1. 邮箱密码错误（需要使用应用专用密码，不是登录密码）")
+            print(f"   2. 未启用两步验证")
+            print(f"   3. 应用专用密码未正确生成")
+            raise
+        except smtplib.SMTPConnectError as e:
+            print(f"❌ 邮件发送失败: 无法连接到 SMTP 服务器")
+            print(f"   服务器: {Config.SMTP_SERVER}:{Config.SMTP_PORT}")
+            print(f"   可能的原因：")
+            print(f"   1. SMTP 服务器地址错误")
+            print(f"   2. 端口号错误（Gmail 使用 587）")
+            print(f"   3. 网络连接问题")
+            raise
         except Exception as e:
-            print(f"❌ 邮件发送失败: {e}")
+            print(f"❌ 邮件发送失败: {type(e).__name__}: {e}")
+            print(f"   服务器: {Config.SMTP_SERVER}:{Config.SMTP_PORT}")
+            print(f"   发件人: {Config.EMAIL_SENDER}")
+            print(f"   收件人: {Config.EMAIL_RECEIVER}")
             raise

@@ -5,7 +5,6 @@ description = "自动获取 daily papers 列表并用大模型分析并推送结
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "feedparser>=6.0.10",
     "openai>=1.0.0",
     "python-dotenv>=1.0.0",
     "requests>=2.31.0",

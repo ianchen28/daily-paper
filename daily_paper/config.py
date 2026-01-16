@@ -3,8 +3,8 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 
-# 加载 .env 文件
-load_dotenv()
+# 加载 .env 文件（override=True 确保 .env 文件的值覆盖系统环境变量）
+load_dotenv(override=True)
 
 
 class Config:
@@ -25,6 +25,11 @@ class Config:
     EMAIL_SENDER: str = os.environ.get("EMAIL_SENDER", "")
     EMAIL_PASSWORD: str = os.environ.get("EMAIL_PASSWORD", "")
     EMAIL_RECEIVER: str = os.environ.get("EMAIL_RECEIVER", "")
+    SMTP_TIMEOUT: int = int(os.environ.get("SMTP_TIMEOUT", "30"))  # 超时时间（秒）
+    SMTP_USE_SSL: bool = os.environ.get("SMTP_USE_SSL", "false").lower() in (
+        "true", "1", "yes")  # 是否使用 SSL（用于 465 端口）
+    SMTP_USE_TLS: bool = os.environ.get("SMTP_USE_TLS", "true").lower() in (
+        "true", "1", "yes")  # 是否使用 TLS（用于 587 端口）
 
     # 论文源配置
     FEED_URL: str = os.environ.get("FEED_URL",
@@ -34,6 +39,11 @@ class Config:
     # 关注关键词
     KEYWORDS: str = os.environ.get(
         "KEYWORDS", "RAG, Agent, Multimodal, Efficient Training")
+
+    # 推理模式配置
+    INCLUDE_REASONING: bool = os.environ.get("INCLUDE_REASONING",
+                                             "false").lower() in ("true", "1",
+                                                                  "yes")
 
     @classmethod
     def validate(cls) -> None:

@@ -29,12 +29,15 @@ jobs:
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
           MODEL_NAME: ${{ secrets.MODEL_NAME }}
+          INCLUDE_REASONING: ${{ secrets.INCLUDE_REASONING }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USE_SSL: ${{ secrets.SMTP_USE_SSL }}
+          SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
+          SMTP_TIMEOUT: ${{ secrets.SMTP_TIMEOUT }}
           EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
           EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
           KEYWORDS: ${{ secrets.KEYWORDS }}
-          FEED_URL: ${{ secrets.FEED_URL }}
           MAX_PAPERS: ${{ secrets.MAX_PAPERS }}
         run: uv run python main.py

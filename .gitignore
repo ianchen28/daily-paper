@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Daily Paper 生成的报告文件
+daily_paper_report_*.html
