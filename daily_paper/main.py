@@ -79,7 +79,6 @@ def main() -> None:
         except Exception as e:
             print(f"\n⚠️ 邮件发送失败，但报告内容已生成")
             # 保存报告到文件作为备份
-            from datetime import datetime
             backup_file = f"daily_paper_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
             try:
                 with open(backup_file, 'w', encoding='utf-8') as f:
