@@ -20,20 +20,22 @@ class Config:
     MODEL_NAME: str = os.environ.get("MODEL_NAME", "deepseek-chat")
 
     # 邮件配置
-    SMTP_SERVER: str = os.environ.get("SMTP_SERVER", "smtp.gmail.com") or "smtp.gmail.com"
+    SMTP_SERVER: str = os.environ.get("SMTP_SERVER",
+                                      "smtp.gmail.com") or "smtp.gmail.com"
     SMTP_PORT: int = int(os.environ.get("SMTP_PORT", "587") or "587")
     EMAIL_SENDER: str = os.environ.get("EMAIL_SENDER", "")
     EMAIL_PASSWORD: str = os.environ.get("EMAIL_PASSWORD", "")
     EMAIL_RECEIVER: str = os.environ.get("EMAIL_RECEIVER", "")
-    SMTP_TIMEOUT: int = int(os.environ.get("SMTP_TIMEOUT", "30") or "30")  # 超时时间（秒）
-    SMTP_USE_SSL: bool = (os.environ.get("SMTP_USE_SSL", "false") or "false").lower() in (
-        "true", "1", "yes")  # 是否使用 SSL（用于 465 端口）
-    SMTP_USE_TLS: bool = (os.environ.get("SMTP_USE_TLS", "true") or "true").lower() in (
-        "true", "1", "yes")  # 是否使用 TLS（用于 587 端口）
+    SMTP_TIMEOUT: int = int(os.environ.get("SMTP_TIMEOUT", "30")
+                            or "30")  # 超时时间（秒）
+    SMTP_USE_SSL: bool = (os.environ.get("SMTP_USE_SSL", "false")
+                          or "false").lower() in ("true", "1", "yes"
+                                                  )  # 是否使用 SSL（用于 465 端口）
+    SMTP_USE_TLS: bool = (os.environ.get("SMTP_USE_TLS", "true")
+                          or "true").lower() in ("true", "1", "yes"
+                                                 )  # 是否使用 TLS（用于 587 端口）
 
     # 论文源配置
-    FEED_URL: str = os.environ.get("FEED_URL",
-                                   "https://huggingface.co/papers/feed") or "https://huggingface.co/papers/feed"
     MAX_PAPERS: int = int(os.environ.get("MAX_PAPERS", "6") or "6")
 
     # 关注关键词

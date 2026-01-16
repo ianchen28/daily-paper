@@ -90,8 +90,6 @@ cp .env.example .env
   - 设置每天获取和分析的论文数量
   - 建议范围：5-10 篇（太少可能错过重要论文，太多会增加分析时间和成本）
   
-- `FEED_URL`: 论文源 RSS 地址（可选，已废弃，保留用于兼容性）
-  - 现在直接使用 HuggingFace Daily Papers API，此参数不再使用
 
 ### 5. 获取 Gmail 应用专用密码
 
@@ -111,56 +109,30 @@ uv run python main.py
 
 ## GitHub Actions 配置
 
-📖 **快速开始**：查看 [QUICK_START.md](QUICK_START.md) 获取快速配置清单
-
-📚 **详细指南**：查看 [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) 获取完整配置说明
-
 ### 1. 设置 Secrets
 
-在 GitHub 仓库的 Settings > Secrets and variables > Actions 中添加以下 secrets：
+在 GitHub 仓库的 **Settings > Secrets and variables > Actions** 中添加 secrets。
 
-#### 必需配置
+📋 **详细配置清单**：查看 [MY_SECRETS.md](MY_SECRETS.md) 获取完整的配置列表和操作步骤。
 
+**必需配置（4个）**：
 - `LLM_API_KEY`: LLM API Key
 - `EMAIL_SENDER`: 发件邮箱地址
-- `EMAIL_PASSWORD`: 邮箱应用专用密码
+- `EMAIL_PASSWORD`: 邮箱授权码（不是登录密码）
 - `EMAIL_RECEIVER`: 接收邮箱地址
 
-#### 可选配置
+**推荐配置**：
+- `SMTP_SERVER`: SMTP 服务器（QQ 邮箱: `smtp.qq.com`）
+- `SMTP_PORT`: SMTP 端口（QQ 邮箱: `465`）
+- `SMTP_USE_SSL`: 是否使用 SSL（QQ 邮箱: `true`）
+- `SMTP_USE_TLS`: 是否使用 TLS（QQ 邮箱: `false`）
+- `MODEL_NAME`: 模型名称（默认: `deepseek-chat`）
+- `KEYWORDS`: 关注的关键词（默认: `RAG, Agent, Multimodal, Efficient Training`）
+- `MAX_PAPERS`: 论文数量（默认: `6`）
 
-- `LLM_BASE_URL`: LLM API 地址
-  - DeepSeek: `https://api.deepseek.com`
-  - Gemini: `https://generativelanguage.googleapis.com/v1beta/openai/`
-  - OpenAI: `https://api.openai.com/v1`
-- `MODEL_NAME`: 模型名称
-  - DeepSeek: `deepseek-chat`
-  - Gemini: `gemini-1.5-flash`
-  - OpenAI: `gpt-3.5-turbo`
-- `SMTP_SERVER`: SMTP 服务器（默认: smtp.gmail.com）
-- `SMTP_PORT`: SMTP 端口（默认: 587）
-- `KEYWORDS`: 关注的关键词（默认: RAG, Agent, Multimodal, Efficient Training）
-  - 格式：用逗号分隔，例如：`RAG, Agent, Multimodal, Efficient Training, LLM`
-  - LLM 会根据这些关键词评估论文相关性
-- `MAX_PAPERS`: 最大论文数量（默认: 6）
-  - 建议范围：5-10 篇
-- `FEED_URL`: 论文源 RSS 地址（已废弃，保留用于兼容性）
+### 2. 运行
 
-### 2. 定时运行
-
-工作流默认每天 UTC 时间 8:00（北京时间 16:00）运行。你也可以手动触发：
-
-1. 进入 Actions 页面
-2. 选择 "Daily Paper" workflow
-3. 点击 "Run workflow"
-
-### 3. 修改运行时间
-
-编辑 `.github/workflows/daily-paper.yml` 中的 cron 表达式：
-
-```yaml
-schedule:
-  - cron: '0 8 * * *'  # UTC 时间 8:00
-```
+工作流默认每天 UTC 8:00（北京时间 16:00）运行。也可以手动触发：**Actions** > **Daily Paper** > **Run workflow**。
 
 ## 项目结构
 
@@ -259,6 +231,11 @@ uv run ruff check .
 **提示**：如果邮件发送失败，程序会自动保存报告到 HTML 文件（`daily_paper_report_*.html`），可以在浏览器中打开查看。
 
 更多详细的故障排查信息，请查看 [故障排查指南](TROUBLESHOOTING.md)。
+
+## 相关文档
+
+- [GitHub Secrets 配置清单](MY_SECRETS.md) - 详细的 Secrets 填写指南
+- [故障排查](TROUBLESHOOTING.md) - 常见问题和解决方案
 
 ## 许可证
 
