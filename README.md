@@ -111,6 +111,10 @@ uv run python main.py
 
 ## GitHub Actions 配置
 
+📖 **快速开始**：查看 [QUICK_START.md](QUICK_START.md) 获取快速配置清单
+
+📚 **详细指南**：查看 [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md) 获取完整配置说明
+
 ### 1. 设置 Secrets
 
 在 GitHub 仓库的 Settings > Secrets and variables > Actions 中添加以下 secrets：
