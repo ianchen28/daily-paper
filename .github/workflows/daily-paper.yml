@@ -27,6 +27,8 @@ jobs:
       - name: Run daily paper
         timeout-minutes: 60  # 设置超时时间为 60 分钟
         env:
+          # 禁用 Python 输出缓冲，确保日志实时显示
+          PYTHONUNBUFFERED: 1
           # Secrets（敏感信息）
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
@@ -50,4 +52,4 @@ jobs:
           echo "  MAX_PAPERS: ${{ vars.MAX_PAPERS }}"
           echo "  KEYWORDS: ${{ vars.KEYWORDS }}"
           echo ""
-          uv run python main.py
+          uv run python -u main.py

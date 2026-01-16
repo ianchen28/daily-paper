@@ -50,11 +50,16 @@ class Config:
     @classmethod
     def validate(cls) -> None:
         """验证必要的配置项"""
+        errors = []
         if not cls.LLM_API_KEY:
-            raise ValueError("LLM_API_KEY 环境变量未设置")
+            errors.append("LLM_API_KEY 环境变量未设置")
         if not cls.EMAIL_SENDER:
-            raise ValueError("EMAIL_SENDER 环境变量未设置")
+            errors.append("EMAIL_SENDER 环境变量未设置")
         if not cls.EMAIL_PASSWORD:
-            raise ValueError("EMAIL_PASSWORD 环境变量未设置")
+            errors.append("EMAIL_PASSWORD 环境变量未设置")
         if not cls.EMAIL_RECEIVER:
-            raise ValueError("EMAIL_RECEIVER 环境变量未设置")
+            errors.append("EMAIL_RECEIVER 环境变量未设置")
+
+        if errors:
+            error_msg = "配置验证失败:\n" + "\n".join(f"  - {e}" for e in errors)
+            raise ValueError(error_msg)

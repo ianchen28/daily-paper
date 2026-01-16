@@ -8,8 +8,16 @@ from .notifier import Notifier
 
 def main() -> None:
     """主函数"""
-    # 验证配置
-    Config.validate()
+    try:
+        # 验证配置
+        print("🔍 正在验证配置...")
+        Config.validate()
+        print("✅ 配置验证通过")
+    except Exception as e:
+        print(f"❌ 配置验证失败: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
     print(f"🚀 开始任务，使用模型: {Config.MODEL_NAME}")
 
