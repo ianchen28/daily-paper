@@ -1,9 +1,13 @@
 """主程序入口"""
+import os
 from datetime import datetime
+
 from .config import Config
-from .paper_fetcher import get_papers
+from .database import Database
 from .llm_analyzer import LLMAnalyzer
 from .notifier import Notifier
+from .paper_fetcher import get_papers
+from .web_generator import WebGenerator
 
 
 def main() -> None:
@@ -21,18 +25,27 @@ def main() -> None:
 
     print(f"🚀 开始任务，使用模型: {Config.MODEL_NAME}")
 
-    # 初始化客户端和分析器
+    # 初始化组件
     analyzer = LLMAnalyzer()
     notifier = Notifier()
+    db = Database()
+    web_gen = WebGenerator()
 
-    # 获取论文（默认获取昨天的论文）
+    print(f"📊 数据库类型: {db.get_statistics()['database_type']}")
+
+    # 获取论文（默认获取昨天的论文，支持环境变量 TEST_DATE 指定日期）
+    test_date = os.getenv('TEST_DATE')
+    if test_date:
+        print(f"\n⚠️ 测试模式：使用指定日期 {test_date}")
+
     print("\n📰 开始获取 HuggingFace Daily Papers...")
     print(f"📊 配置: MAX_PAPERS={Config.MAX_PAPERS}")
-    papers = get_papers()
+    papers = get_papers(test_date) if test_date else get_papers()
     print(f"✅ 获取到 {len(papers)} 篇论文（配置限制: {Config.MAX_PAPERS}）")
 
     if not papers:
         print("❌ 没有获取到论文，可能是该日期没有论文或 API 访问失败")
+        db.close()
         return
 
     # 打印论文列表
@@ -42,9 +55,18 @@ def main() -> None:
         print(f"     链接: {paper.link}")
         print(f"     摘要长度: {len(paper.summary)} 字符")
 
+    # 保存论文到数据库
+    print("\n💾 保存论文到数据库...")
+    for paper in papers:
+        try:
+            db.save_paper(paper)
+        except Exception as e:
+            print(f"  ⚠️ 保存论文失败 ({paper.title}): {e}")
+
     # 生成 HTML 报告
     print("\n🤖 开始分析论文...")
     report_html = ""
+    analyzed_papers = []
 
     for i, paper in enumerate(papers, 1):
         print(f"\n[{i}/{len(papers)}] 正在分析: {paper.title}...")
@@ -56,8 +78,36 @@ def main() -> None:
             if summary:
                 print(f"  内容预览: {summary[:100]}...")
                 report_html += summary + "\n"
+
+                # 保存分析结果到数据库
+                try:
+                    # TODO: 添加 embedding 生成和保存
+                    db.save_analysis(
+                        paper_id=paper.paper_id,
+                        analysis_html=summary,
+                        model_name=Config.MODEL_NAME,
+                        analysis_text=None,  # 暂不提取纯文本
+                        embedding=None  # 暂不生成 embedding
+                    )
+                    analyzed_papers.append({
+                        "paper_id": paper.paper_id,
+                        "title": paper.title,
+                        "link": paper.link,
+                        "summary": paper.summary,
+                        "authors": paper.authors,
+                        "organization": paper.organization,
+                        "upvotes": paper.upvotes,
+                        "github_repo": paper.github_repo,
+                        "github_stars": paper.github_stars,
+                        "num_comments": paper.num_comments,
+                        "keywords": paper.ai_keywords,
+                        "published_at": paper.published_at,
+                        "analysis_html": summary
+                    })
+                except Exception as e:
+                    print(f"  ⚠️ 保存分析结果失败: {e}")
             else:
-                print(f"  ⚠️ 返回内容为空")
+                print("  ⚠️ 返回内容为空")
         except Exception as e:
             print(f"    结束时间: {datetime.now().strftime('%H:%M:%S')}")
             print(f"  ❌ 分析出错: {type(e).__name__}: {e}")
@@ -66,9 +116,44 @@ def main() -> None:
             # 继续处理下一篇论文，不中断整个流程
             continue
 
-    print(f"\n📊 报告统计:")
+    print("\n📊 报告统计:")
     print(f"  总论文数: {len(papers)}")
+    print(f"  成功分析: {len(analyzed_papers)}")
     print(f"  报告内容长度: {len(report_html)} 字符")
+
+    # 生成交互式网页
+    today = datetime.now().strftime("%Y-%m-%d")
+    web_page_path = None
+
+    if report_html.strip() and analyzed_papers:
+        print("\n🌐 生成交互式网页...")
+        try:
+            web_page_path = web_gen.generate_report_page(
+                date=today,
+                papers_data=analyzed_papers,
+                report_html=report_html,
+                keywords=Config.KEYWORDS
+            )
+            print(f"✅ 网页已生成: {web_page_path}")
+        except Exception as e:
+            print(f"  ⚠️ 网页生成失败: {e}")
+            import traceback
+            traceback.print_exc()
+
+    # 保存报告到数据库
+    if report_html.strip():
+        print("\n💾 保存报告到数据库...")
+        try:
+            db.save_report(
+                date=today,
+                html_content=report_html,
+                paper_count=len(analyzed_papers),
+                web_page_path=web_page_path,
+                email_sent=False
+            )
+            print("✅ 报告已保存到数据库")
+        except Exception as e:
+            print(f"  ⚠️ 保存报告失败: {e}")
 
     # 发送邮件
     if report_html.strip():
@@ -76,8 +161,15 @@ def main() -> None:
         try:
             notifier.send_email(report_html)
             print("✅ 报告已发送！")
-        except Exception as e:
-            print(f"\n⚠️ 邮件发送失败，但报告内容已生成")
+
+            # 更新邮件发送状态
+            try:
+                db.update_report_email_status(today, email_sent=True)
+            except Exception as e:
+                print(f"  ⚠️ 更新邮件状态失败: {e}")
+
+        except Exception:
+            print("\n⚠️ 邮件发送失败，但报告内容已生成")
             # 保存报告到文件作为备份
             backup_file = f"daily_paper_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
             try:
@@ -111,16 +203,31 @@ def main() -> None:
 </html>
 """)
                 print(f"💾 报告已保存到文件: {backup_file}")
-                print(f"   你可以在浏览器中打开此文件查看报告")
+                print("   你可以在浏览器中打开此文件查看报告")
             except Exception as save_error:
                 print(f"⚠️ 保存报告文件也失败: {save_error}")
-            print(f"\n💡 建议检查邮件配置或网络连接后重试")
+            print("\n💡 建议检查邮件配置或网络连接后重试")
     else:
         print("\n⚠️ 没有生成报告内容")
         print("可能的原因:")
         print("  1. LLM API 调用失败")
         print("  2. LLM 返回空内容")
         print("  3. 论文数据获取失败")
+
+    # 显示统计信息
+    print("\n📈 数据库统计:")
+    stats = db.get_statistics()
+    for key, value in stats.items():
+        print(f"  {key}: {value}")
+
+    # 关闭数据库连接
+    db.close()
+
+    # 最终提示
+    if web_page_path:
+        print("\n🎉 完成！你可以访问以下网页查看报告:")
+        print(f"  {web_page_path}")
+        print(f"  或访问索引页: {web_gen.output_dir / 'index.html'}")
 
 
 if __name__ == "__main__":

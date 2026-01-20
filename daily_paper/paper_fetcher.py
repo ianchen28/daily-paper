@@ -1,6 +1,7 @@
 """论文获取模块"""
-from typing import List, Optional
 from datetime import datetime, timedelta
+from typing import List, Optional
+
 from .config import Config
 
 
@@ -68,10 +69,10 @@ def _fetch_from_huggingface_api(
         target_date: Optional[str] = None) -> List[Paper]:
     """
     从 HuggingFace Daily Papers API 获取论文
-    
+
     Args:
         target_date: 日期字符串，格式 'YYYY-MM-DD'。如果不传，默认是昨天。
-    
+
     Returns:
         论文列表
     """
@@ -203,7 +204,7 @@ def _fetch_from_huggingface_api(
             if papers:
                 print(f"  ✅ 成功从 HuggingFace 获取 {len(papers)} 篇论文")
             else:
-                print(f"  ⚠️ 该日期没有论文")
+                print("  ⚠️ 该日期没有论文")
             return papers
         else:
             print(f"  ⚠️ API 请求失败，状态码: {response.status_code}")
@@ -223,10 +224,10 @@ def _fetch_from_huggingface_api(
 def get_papers(target_date: Optional[str] = None) -> List[Paper]:
     """
     获取 HuggingFace Daily Papers 列表
-    
+
     Args:
         target_date: 日期字符串，格式 'YYYY-MM-DD'。如果不传，默认是昨天。
-    
+
     Returns:
         论文条目列表
     """

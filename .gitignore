@@ -206,5 +206,19 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Daily Paper 生成的报告文件
+# Daily Paper 相关
+# 数据库文件
+daily_paper.db
+daily_paper.db-journal
+*.db
+*.db-journal
+
+# 网页输出目录
+web_reports/
+
+# 备份的报告文件
 daily_paper_report_*.html
+
+# Claude Code 配置
+.claude/
+start_claude_code.cmd

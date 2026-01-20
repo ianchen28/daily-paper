@@ -1,8 +1,9 @@
 """通知推送模块"""
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from .config import Config
 
 
@@ -113,28 +114,28 @@ class Notifier:
             server.quit()
             print("✅ 邮件发送成功！")
 
-        except socket.timeout as e:
+        except socket.timeout:
             print(f"❌ 邮件发送失败: 连接超时（{Config.SMTP_TIMEOUT}秒）")
-            print(f"   可能的原因：")
-            print(f"   1. 网络连接问题")
-            print(f"   2. SMTP 服务器地址或端口错误")
-            print(f"   3. 防火墙或代理阻止连接")
+            print("   可能的原因：")
+            print("   1. 网络连接问题")
+            print("   2. SMTP 服务器地址或端口错误")
+            print("   3. 防火墙或代理阻止连接")
             print(f"   4. 可以尝试增加 SMTP_TIMEOUT 的值（当前: {Config.SMTP_TIMEOUT}秒）")
             raise
-        except smtplib.SMTPAuthenticationError as e:
-            print(f"❌ 邮件发送失败: 认证失败")
-            print(f"   可能的原因：")
-            print(f"   1. 邮箱密码错误（需要使用应用专用密码，不是登录密码）")
-            print(f"   2. 未启用两步验证")
-            print(f"   3. 应用专用密码未正确生成")
+        except smtplib.SMTPAuthenticationError:
+            print("❌ 邮件发送失败: 认证失败")
+            print("   可能的原因：")
+            print("   1. 邮箱密码错误（需要使用应用专用密码，不是登录密码）")
+            print("   2. 未启用两步验证")
+            print("   3. 应用专用密码未正确生成")
             raise
-        except smtplib.SMTPConnectError as e:
-            print(f"❌ 邮件发送失败: 无法连接到 SMTP 服务器")
+        except smtplib.SMTPConnectError:
+            print("❌ 邮件发送失败: 无法连接到 SMTP 服务器")
             print(f"   服务器: {Config.SMTP_SERVER}:{Config.SMTP_PORT}")
-            print(f"   可能的原因：")
-            print(f"   1. SMTP 服务器地址错误")
-            print(f"   2. 端口号错误（Gmail 使用 587）")
-            print(f"   3. 网络连接问题")
+            print("   可能的原因：")
+            print("   1. SMTP 服务器地址错误")
+            print("   2. 端口号错误（Gmail 使用 587）")
+            print("   3. 网络连接问题")
             raise
         except Exception as e:
             print(f"❌ 邮件发送失败: {type(e).__name__}: {e}")

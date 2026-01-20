@@ -1,14 +1,38 @@
 # Daily Paper
 
-自动获取 daily papers 列表，使用大模型分析并推送结果到邮箱。
+自动获取 daily papers 列表，使用大模型分析并推送结果到邮箱。支持数据持久化和交互式网页生成。
 
 ## 功能特性
 
 - 📰 自动从 HuggingFace Papers RSS 获取最新论文
 - 🤖 支持多种大模型（DeepSeek、Gemini、OpenAI 等）自动分析论文
 - 📧 推送精美的 HTML 格式邮件到你的邮箱
+- 💾 **数据持久化**：论文和分析结果自动保存到数据库（SQLite/PostgreSQL）
+- 🌐 **交互式网页**：每次推送后自动生成精美的可交互网页
+- 🔍 **RAG-ready**：支持语义搜索和未来的 Agent 开发（PostgreSQL + pgvector）
 - ⏰ 支持 GitHub Actions 定时运行
 - 💰 完全免费：GitHub Actions 免费，Gemini Flash 免费层，Gmail 发信免费
+
+## 新功能亮点 (v0.2.0)
+
+### 1. 数据持久化
+- ✅ 自动保存论文元数据和 LLM 分析结果
+- ✅ 支持 SQLite（默认，零配置）和 PostgreSQL（生产级）
+- ✅ 历史数据查询和统计
+
+### 2. 交互式网页
+- ✅ 精美的响应式设计（支持手机浏览）
+- ✅ 实时搜索过滤（标题、关键词、作者）
+- ✅ 多种排序方式（点赞数、Stars）
+- ✅ 论文收藏功能
+- ✅ 历史报告索引页
+
+### 3. RAG-ready 架构
+- ✅ PostgreSQL + pgvector 支持
+- ✅ 向量检索预留字段
+- ✅ 为未来的 RAG Agent 开发做好准备
+
+**详细升级文档**：[UPGRADE_GUIDE.md](UPGRADE_GUIDE.md)
 
 ## 技术栈
 
@@ -71,6 +95,13 @@ cp .env.example .env
   - 仅对支持推理的模型（如 `deepseek-reasoner`）有效
   - 设置为 `true` 时，邮件中会包含模型的思考过程（以可折叠形式显示）
 
+#### 数据库配置（可选）
+
+- `DATABASE_URL`: 数据库连接 URL（可选）
+  - 默认：`daily_paper.db`（SQLite，自动创建）
+  - PostgreSQL：`postgresql://username:password@localhost:5432/daily_paper`
+  - 详见 [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md#数据库配置)
+
 #### 邮件配置（必需）
 
 - `EMAIL_SENDER`: 发件邮箱地址（必需）
@@ -85,11 +116,13 @@ cp .env.example .env
   - 格式：用逗号分隔的关键词，例如：`RAG, Agent, Multimodal, Efficient Training, LLM, Transformer`
   - LLM 会根据这些关键词评估论文与你的关注领域的相关性
   - 建议：3-8 个关键词，涵盖你主要关注的研究方向
-  
+
 - `MAX_PAPERS`: 最大论文数量（可选，默认: 6）
   - 设置每天获取和分析的论文数量
   - 建议范围：5-10 篇（太少可能错过重要论文，太多会增加分析时间和成本）
-  
+
+- `WEB_OUTPUT_DIR`: 网页输出目录（可选，默认: web_reports）
+
 
 ### 5. 获取 Gmail 应用专用密码
 
@@ -106,6 +139,27 @@ cp .env.example .env
 ```bash
 uv run python main.py
 ```
+
+成功运行后会：
+- 📊 显示数据库类型（SQLite 或 PostgreSQL）
+- 📰 获取并保存论文到数据库
+- 🤖 LLM 分析并保存分析结果
+- 🌐 生成交互式网页到 `web_reports/` 目录
+- 📧 发送邮件报告
+
+#### 查看网页报告
+
+打开浏览器访问：
+```
+web_reports/index.html  # 历史报告索引
+web_reports/report_YYYY-MM-DD.html  # 具体日期的报告
+```
+
+网页功能：
+- 🔍 实时搜索论文
+- 📊 多种排序方式
+- ⭐ 论文收藏
+- 📱 手机适配
 
 ## GitHub Actions 配置
 
@@ -144,14 +198,22 @@ daily-paper/
 │   ├── paper_fetcher.py  # 论文获取
 │   ├── llm_analyzer.py   # LLM 分析
 │   ├── notifier.py       # 邮件推送
+│   ├── database.py       # 数据库模块 (新)
+│   ├── web_generator.py  # 网页生成器 (新)
 │   └── main.py           # 主逻辑
 ├── main.py               # 命令行入口
 ├── pyproject.toml        # 项目配置（uv）
 ├── .env.example          # 环境变量模板
+├── daily_paper.db        # SQLite 数据库（自动生成）
+├── web_reports/          # 网页输出目录（自动生成）
+│   ├── index.html        # 历史报告索引
+│   └── report_*.html     # 每日报告
 ├── .github/
 │   └── workflows/
 │       └── daily-paper.yml  # GitHub Actions 工作流
-└── README.md
+├── README.md
+├── UPGRADE_GUIDE.md      # 升级指南 (新)
+└── TROUBLESHOOTING.md    # 故障排查
 ```
 
 ## 开发
@@ -234,8 +296,34 @@ uv run ruff check .
 
 ## 相关文档
 
+- [升级指南 (v0.1.0 → v0.2.0)](UPGRADE_GUIDE.md) - 新功能详解、数据库配置、API 使用
 - [GitHub Secrets 配置清单](MY_SECRETS.md) - 详细的 Secrets 填写指南
 - [故障排查](TROUBLESHOOTING.md) - 常见问题和解决方案
+
+## 数据库使用示例
+
+### 查询历史论文
+
+```python
+from daily_paper.database import Database
+
+db = Database()
+
+# 查询指定日期的论文
+papers = db.get_papers_by_date_range("2024-01-15")
+for paper in papers:
+    print(f"{paper['title']} - {paper['upvotes']} 点赞")
+
+# 搜索关键词
+results = db.search_papers("RAG", limit=10)
+
+# 获取统计信息
+stats = db.get_statistics()
+print(f"总论文数: {stats['total_papers']}")
+print(f"数据库类型: {stats['database_type']}")
+```
+
+更多 API 示例和数据库配置，请查看 [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md)。
 
 ## 许可证
 

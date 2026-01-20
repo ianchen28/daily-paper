@@ -1,6 +1,8 @@
 """LLM 分析模块"""
+from typing import Any
+
 from openai import OpenAI
-from typing import Any, Optional
+
 from .config import Config
 
 
@@ -133,7 +135,7 @@ class LLMAnalyzer:
                 ],
                 temperature=0.3,
             )
-            print(f"    ✅ LLM API 调用成功")
+            print("    ✅ LLM API 调用成功")
 
             # 处理响应：支持推理模式（deepseek-reasoner）和普通模式
             message = response.choices[0].message
@@ -141,7 +143,7 @@ class LLMAnalyzer:
             # 提取最终答案
             content = message.content
             if not content:
-                print(f"    ⚠️ 警告: LLM 返回空内容")
+                print("    ⚠️ 警告: LLM 返回空内容")
                 return f"<p>⚠️ 无法分析 {paper.title}：LLM 返回空内容</p>"
 
             # 检查是否有推理内容（reasoning mode）
